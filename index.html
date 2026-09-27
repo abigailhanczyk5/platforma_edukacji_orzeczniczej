@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="pl" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PEO - Platforma Edukacji Kadry Orzeczniczej i Administracji</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        gov: {
+                            50: '#f0f4f8',
+                            100: '#d9e2ec',
+                            200: '#bcccdc',
+                            600: '#103053',
+                            700: '#0b213b',
+                            800: '#071526',
+                            accent: '#c89332',
+                            accentHover: '#b07f28'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .tab-active {
+            border-bottom: 3px solid #103053;
+            color: #103053;
+            font-weight: 600;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+    </style>
+</head>
+<body class="h-full text-slate-800 flex flex-col font-sans antialiased selection:bg-gov-600 selection:text-white">
+
+    <header class="bg-gov-700 text-white shadow-md sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo & System Name -->
+                <div class="flex items-center space-x-3">
+                    <button onclick="toggleMobileSidebar()" class="md:hidden text-slate-300 hover:text-white mr-1">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                    <div class="w-10 h-10 bg-gov-accent rounded-lg flex items-center justify-center font-extrabold text-gov-800 text-xl shadow-md border border-amber-300/40">
+                        PEO
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-bold text-lg tracking-wide leading-tight">Platforma Edukacji Orzeczniczej</span>
+                            <span class="bg-gov-accent/20 text-gov-accent border border-gov-accent/40 text-[10px] font-mono px-1.5 py-0.5 rounded uppercase font-semibold hidden sm:inline-block">v2.5 Edu</span>
+                        </div>
+                        <span class="text-xs text-slate-300 font-light hidden sm:block">System podnoszenia kompetencji i certyfikacji kadr orzeczniczych i administracji</span>
+                    </div>
+                </div>
+
+                <!-- Role Switcher & User Profile -->
+                <div class="flex items-center space-x-3 sm:space-x-4">
+                    <!-- User Role Selector Toggle -->
+                    <div class="bg-gov-800/80 p-1 rounded-lg border border-slate-600/60 flex text-xs">
+                        <button onclick="setUserRole('orzecznik')" id="role-btn-orzecznik" class="px-2.5 py-1 rounded-md transition font-medium bg-white text-gov-700 shadow-sm">
+                            <i class="fa-solid fa-user-doctor mr-1"></i> <span class="hidden sm:inline">Lekarz</span> Orzecznik
+                        </button>
+                        <button onclick="setUserRole('admin')" id="role-btn-admin" class="px-2.5 py-1 rounded-md text-slate-300 hover:text-white transition font-medium">
+                            <i class="fa-solid fa-user-gear mr-1"></i> <span class="hidden sm:inline">Pracownik</span> Admin
+                        </button>
+                        <button onclick="setUserRole('publisher')" id="role-btn-publisher" class="px-2.5 py-1 rounded-md text-slate-300 hover:text-white transition font-medium">
+                            <i class="fa-solid fa-file-pen mr-1"></i> Wydawca
+                        </button>
+                    </div>
+
+                    <!-- User Profile Dropdown Simulator -->
+                    <div class="flex items-center space-x-3 border-l border-slate-600/80 pl-3 sm:pl-4">
+                        <div class="text-right hidden md:block">
+                            <div class="text-sm font-semibold leading-tight" id="user-display-name">dr n. med. Jan Kowalski</div>
+                            <div class="text-[11px] text-gov-accent" id="user-display-title">Główny Lekarz Orzecznik</div>
+                        </div>
+                        <div class="w-9 h-9 rounded-full bg-slate-200 text-gov-700 flex items-center justify-center font-bold text-sm ring-2 ring-gov-accent shadow">
+                            JK
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row gap-6 relative">
+
+        <!-- Navigation Sidebar -->
+        <aside id="app-sidebar" class="w-full md:w-64 flex-shrink-0 hidden md:block z-20">
+            <nav class="bg-white rounded-xl shadow-sm border border-slate-200 p-3 space-y-1 sticky top-20">
+                <a href="#" onclick="switchView('dashboard')" id="nav-dashboard" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition bg-slate-100 text-gov-600">
+                    <i class="fa-solid fa-chart-line w-5 text-center"></i>
+                    <span>Pulpit Główny</span>
+                </a>
+                <a href="#" onclick="switchView('courses')" id="nav-courses" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-gov-600 transition">
+                    <i class="fa-solid fa-graduation-cap w-5 text-center"></i>
+                    <span>Katalog Kursów</span>
+                    <span class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded-full ml-auto font-mono" id="nav-courses-count">4</span>
+                </a>
+                <a href="#" onclick="switchView('synthetic')" id="nav-synthetic" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-gov-600 transition">
+                    <i class="fa-solid fa-folder-open w-5 text-center text-amber-600"></i>
+                    <span>Dane Syntetyczne (Akt)</span>
+                    <span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded-full font-bold ml-auto">Symulator</span>
+                </a>
+                <a href="#" onclick="switchView('certificates')" id="nav-certificates" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-gov-600 transition">
+                    <i class="fa-solid fa-award w-5 text-center text-indigo-600"></i>
+                    <span>Certyfikaty i Egzaminy</span>
+                    <span class="bg-red-100 text-red-700 text-xs px-1.5 py-0.5 rounded-full font-bold ml-auto" id="cert-warning-badge">1!</span>
+                </a>
+                <a href="#" onclick="switchView('webinars')" id="nav-webinars" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-gov-600 transition">
+                    <i class="fa-solid fa-video w-5 text-center text-emerald-600"></i>
+                    <span>Webinary & Konsultacje</span>
+                </a>
+                <div class="pt-3 border-t border-slate-100"></div>
+                <a href="#" onclick="switchView('publisher')" id="nav-publisher" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-gov-600 transition">
+                    <i class="fa-solid fa-sliders w-5 text-center text-slate-500"></i>
+                    <span>Panel Wydawcy Treści</span>
+                </a>
+            </nav>
+
+            <!-- Legal Disclaimer Widget -->
+            <div class="mt-4 bg-amber-50/70 border border-amber-200/80 rounded-xl p-3.5 text-xs text-amber-900 leading-relaxed shadow-sm">
+                <div class="flex items-center space-x-2 font-bold mb-1 text-amber-800">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
+                    <span>Środowisko Treningowe</span>
+                </div>
+                Platforma służy wyłącznie celom szkoleniowo-edukacyjnym. Wszystkie akta stanowią dane syntetyczne. System nie przetwarza danych osobowych ani nie rozstrzyga rzeczywistych spraw.
+            </div>
+        </aside>
+
+        <!-- Main Content Workspace -->
+        <main class="flex-1 min-w-0" id="main-content">
+
+            <div id="view-dashboard" class="space-y-6 animate-fade-in">
+                <!-- Alert Banner for Expiring Certificate -->
+                <div id="cert-alert-banner" class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div class="flex items-start space-x-3">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-600 text-xl mt-0.5"></i>
+                        <div>
+                            <h4 class="font-bold text-amber-900 text-sm">Wymagane Odnowienie Certyfikatu Orzeczniczego KPA</h4>
+                            <p class="text-xs text-amber-800 mt-0.5">Certyfikat: <span class="font-semibold">Standardy Orzekania w Sprawach Rentowych (PO-2024-88)</span> wygasa za <strong class="text-red-700 font-mono">14 dni</strong>. Zalecamy ukończenie testu odnawiającego.</p>
+                        </div>
+                    </div>
+                    <button onclick="switchView('certificates'); startRenewalExam();" class="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold whitespace-nowrap transition shadow-sm self-start sm:self-auto">
+                        <i class="fa-solid fa-pen-to-square mr-1.5"></i> Przystąp do Testu
+                    </button>
+                </div>
+
+                <!-- KPI Metric Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Punkty Edukacyjne (CPD)</span>
+                            <i class="fa-solid fa-award text-gov-accent"></i>
+                        </div>
+                        <div class="text-2xl font-extrabold text-gov-700 mt-2 font-mono" id="cpd-points-val">48 / 60</div>
+                        <div class="w-full bg-slate-100 h-2 rounded-full mt-3 overflow-hidden">
+                            <div class="bg-gov-accent h-full rounded-full transition-all duration-500" id="cpd-progress-bar" style="width: 80%"></div>
+                        </div>
+                        <span class="text-[11px] text-slate-400 mt-1 block">Cykl rozliczeniowy 2025/2026</span>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Ukończone Kursy</span>
+                            <i class="fa-solid fa-graduation-cap text-gov-600"></i>
+                        </div>
+                        <div class="text-2xl font-bold text-slate-800 mt-2 font-mono">12</div>
+                        <p class="text-xs text-emerald-600 mt-3 flex items-center font-medium">
+                            <i class="fa-solid fa-circle-check mr-1.5"></i> 2 kursy w trakcie realizacji
+                        </p>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Aktywne Certyfikaty</span>
+                            <i class="fa-solid fa-file-certificate text-indigo-600"></i>
+                        </div>
+                        <div class="text-2xl font-bold text-emerald-700 mt-2 font-mono" id="active-certs-count">3</div>
+                        <p class="text-xs text-slate-500 mt-3">Weryfikowane w rejestrze centralnym</p>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Ćwiczenia Syntetyczne</span>
+                            <i class="fa-solid fa-flask text-amber-600"></i>
+                        </div>
+                        <div class="text-2xl font-bold text-amber-600 mt-2 font-mono" id="completed-cases-count">18 spraw</div>
+                        <p class="text-xs text-slate-500 mt-3">Średnia trafność oceny: <strong class="text-slate-800">94%</strong></p>
+                    </div>
+                </div>
+
+                <!-- Charts & Active Progress Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Progress Chart -->
+                    <div class="lg:col-span-2 bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-base">Profil Kompetencji Orzeczniczo-Administracyjnych</h3>
+                                <p class="text-xs text-slate-500">Postępy w poszczególnych domenach tematycznych</p>
+                            </div>
+                            <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md font-mono">Q3 2026</span>
+                        </div>
+                        <div class="h-64 relative">
+                            <canvas id="competencyChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Ongoing Courses Widget -->
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+                        <h3 class="font-bold text-slate-800 text-base mb-3">Szkolenia W Trakcie</h3>
+                        <div class="space-y-4 flex-1">
+                            <div class="p-3.5 border border-slate-200/80 rounded-xl hover:border-slate-300 transition bg-slate-50/50">
+                                <div class="flex justify-between text-xs font-bold text-gov-600 mb-1">
+                                    <span>ORZECZNICTWO LEKARSKIE</span>
+                                    <span class="font-mono">75%</span>
+                                </div>
+                                <h4 class="font-semibold text-xs text-slate-800 leading-snug">Metodyka oceny uszczerbku na zdrowiu wg aktualnych wytycznych</h4>
+                                <div class="w-full bg-slate-200 h-1.5 rounded-full mt-2 overflow-hidden">
+                                    <div class="bg-gov-600 h-1.5 rounded-full" style="width: 75%"></div>
+                                </div>
+                                <div class="mt-3 flex justify-between items-center text-xs">
+                                    <span class="text-slate-400">Moduł 3 z 4</span>
+                                    <button onclick="openCourseModal(1)" class="text-gov-600 hover:text-gov-700 hover:underline font-bold">Kontynuuj &rarr;</button>
+                                </div>
+                            </div>
+
+                            <div class="p-3.5 border border-slate-200/80 rounded-xl hover:border-slate-300 transition bg-slate-50/50">
+                                <div class="flex justify-between text-xs font-bold text-amber-700 mb-1">
+                                    <span>KPA W ADMINISTRACJI</span>
+                                    <span class="font-mono">30%</span>
+                                </div>
+                                <h4 class="font-semibold text-xs text-slate-800 leading-snug">Uzasadnianie decyzji w sprawach świadczeń wspierających</h4>
+                                <div class="w-full bg-slate-200 h-1.5 rounded-full mt-2 overflow-hidden">
+                                    <div class="bg-amber-600 h-1.5 rounded-full" style="width: 30%"></div>
+                                </div>
+                                <div class="mt-3 flex justify-between items-center text-xs">
+                                    <span class="text-slate-400">Moduł 1 z 3</span>
+                                    <button onclick="openCourseModal(2)" class="text-gov-600 hover:text-gov-700 hover:underline font-bold">Kontynuuj &rarr;</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upcoming Webinars Quick Overview -->
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-base">Nadchodzące Webinary i Konsultacje Ekspertów</h3>
+                            <p class="text-xs text-slate-500">Sesje pytań i odpowiedzi oraz analiza przypadków nietypowych</p>
+                        </div>
+                        <button onclick="switchView('webinars')" class="text-xs font-bold text-gov-600 hover:underline">Pełny kalendarz &rarr;</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="dashboard-webinars-container">
+                        <!-- Populated dynamically via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-courses" class="hidden space-y-6 animate-fade-in">
+                <!-- Header with Search & Filters -->
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-800">Katalog Kursów i Szkoleń</h2>
+                            <p class="text-xs text-slate-500">Materiały standaryzowane dla kadr orzeczniczych oraz pracowników administracyjnych</p>
+                        </div>
+                        <div class="relative w-full md:w-64">
+                            <input type="text" id="course-search-input" onkeyup="filterCourses()" placeholder="Szukaj kursu..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs focus:ring-gov-600 focus:border-gov-600">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
+                        <select id="course-filter-group" onchange="filterCourses()" class="bg-slate-50 border border-slate-300 text-slate-700 text-xs rounded-lg p-2 focus:ring-gov-600 focus:border-gov-600">
+                            <option value="all">Wszystkie grupy docelowe</option>
+                            <option value="orzecznik">Kadra Orzecznicza</option>
+                            <option value="admin">Pracownicy Administracyjni</option>
+                        </select>
+
+                        <select id="course-filter-status" onchange="filterCourses()" class="bg-slate-50 border border-slate-300 text-slate-700 text-xs rounded-lg p-2 focus:ring-gov-600 focus:border-gov-600">
+                            <option value="all">Wszystkie statusy</option>
+                            <option value="active">W trakcie</option>
+                            <option value="available">Dostępne do rozpoczęcia</option>
+                            <option value="completed">Ukończone</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Course Cards Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="courses-grid">
+                    <!-- Dynamic rendering done via JS -->
+                </div>
+            </div>
+
+            <div id="view-synthetic" class="hidden space-y-6 animate-fade-in">
+                <!-- Header Section -->
+                <div class="bg-slate-900 text-white p-6 rounded-xl shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <div class="inline-flex items-center bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs px-2.5 py-1 rounded-md font-mono mb-2">
+                            <i class="fa-solid fa-flask mr-1.5"></i> SYMULATOR AKT SYN TETYCZNYCH (BEZ DANYCH OSOBOWYCH)
+                        </div>
+                        <h2 class="text-xl font-bold">Warsztat Analizy Akt i Projektowania Decyzji</h2>
+                        <p class="text-xs text-slate-300 mt-1">Szkoleniowy moduł oceny dowodów medycznych oraz formułowania spójnych uzasadnień orzeczniczych.</p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 w-full md:w-auto">
+                        <span class="text-xs text-slate-400 whitespace-nowrap">Wybrana Sprawa:</span>
+                        <select id="synthetic-case-select" onchange="loadSyntheticCase(this.value)" class="w-full sm:w-auto bg-slate-800 text-white text-xs border border-slate-700 rounded-lg p-2.5 focus:ring-amber-500 focus:border-amber-500 font-mono">
+                            <option value="case-101">Sprawa #SYN-101: Narząd Ruchu (Schorzenie Kręgosłupa L-S)</option>
+                            <option value="case-102">Sprawa #SYN-102: Świadczenie Wspierające (Ocena Funkcjonalna)</option>
+                            <option value="case-103">Sprawa #SYN-103: Nadzór KPA (Uchybienia Proceduralne)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Case Reader & Decision Workspace Split View -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                    <!-- Left Column: Synthetic Case File Viewer -->
+                    <div class="lg:col-span-7 bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col h-[680px]">
+                        <!-- Case Tab Header -->
+                        <div class="bg-slate-100 border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <i class="fa-solid fa-folder-closed text-amber-600"></i>
+                                <span class="font-mono font-bold text-xs text-slate-800" id="case-file-id">AKTA SPRAWY SYN-101</span>
+                            </div>
+                            <span class="bg-slate-200 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase font-mono">DANE REPREZENTATYWNE</span>
+                        </div>
+
+                        <!-- Inner Tabs for Document sections -->
+                        <div class="border-b border-slate-200 bg-slate-50/70 px-4 flex space-x-4 text-xs font-medium overflow-x-auto">
+                            <button onclick="switchCaseTab('med')" id="tab-case-med" class="py-2.5 tab-active whitespace-nowrap">
+                                <i class="fa-solid fa-notes-medical mr-1.5"></i> Dokumentacja Medyczna
+                            </button>
+                            <button onclick="switchCaseTab('interview')" id="tab-case-interview" class="py-2.5 text-slate-500 hover:text-slate-800 whitespace-nowrap">
+                                <i class="fa-solid fa-clipboard-user mr-1.5"></i> Wywiad & Wniosek
+                            </button>
+                            <button onclick="switchCaseTab('history')" id="tab-case-history" class="py-2.5 text-slate-500 hover:text-slate-800 whitespace-nowrap">
+                                <i class="fa-solid fa-clock-rotate-left mr-1.5"></i> Przebieg Ubezpieczenia
+                            </button>
+                            <button onclick="switchCaseTab('rules')" id="tab-case-rules" class="py-2.5 text-slate-500 hover:text-slate-800 whitespace-nowrap">
+                                <i class="fa-solid fa-scale-balanced mr-1.5 text-gov-600"></i> Wytyczne & Normy
+                            </button>
+                        </div>
+
+                        <!-- Tab Content Scrollable -->
+                        <div class="p-5 flex-1 overflow-y-auto custom-scrollbar font-sans text-xs leading-relaxed text-slate-700 space-y-4" id="case-tab-content">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Interactive Evaluation & Decision Form -->
+                    <div class="lg:col-span-5 bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                                <div>
+                                    <h3 class="font-bold text-slate-800 text-sm">Arkusz Oceny & Projekt Decyzji</h3>
+                                    <p class="text-[11px] text-slate-400">Sporządź ustalenia na podstawie analizy materiału</p>
+                                </div>
+                                <span class="bg-gov-50 text-gov-700 text-xs px-2 py-1 rounded font-bold">Ćwiczenie #101</span>
+                            </div>
+
+                            <form id="synthetic-form" onsubmit="submitSyntheticDecision(event)" class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">1. Stopień naruszenia sprawności organizmu:</label>
+                                    <select id="synthetic-input-degree" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs text-slate-800 focus:ring-gov-600 focus:border-gov-600">
+                                        <option value="">-- Wybierz konkluzję medyczną --</option>
+                                        <option value="brak">Brak trwałego naruszenia / Zdolny do pracy</option>
+                                        <option value="umiarkowany">Częściowa niezdolność do pracy / Stopień umiarkowany</option>
+                                        <option value="calkowity">Całkowita niezdolność do pracy / Stopień znaczny</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">2. Przewidywany okres niezdolności:</label>
+                                    <div class="grid grid-cols-2 gap-2 text-xs">
+                                        <label class="flex items-center space-x-2 border border-slate-200 p-2 rounded-lg cursor-pointer hover:bg-slate-50 transition">
+                                            <input type="radio" name="duration" value="12m" required class="text-gov-600 focus:ring-gov-600">
+                                            <span>Do 12 miesięcy</span>
+                                        </label>
+                                        <label class="flex items-center space-x-2 border border-slate-200 p-2 rounded-lg cursor-pointer hover:bg-slate-50 transition">
+                                            <input type="radio" name="duration" value="36m" class="text-gov-600 focus:ring-gov-600">
+                                            <span>Powyżej 24 miesięcy</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">3. Uzasadnienie merytoryczno-prawne (min. 20 słów):</label>
+                                    <textarea id="synthetic-input-reasoning" rows="4" required placeholder="Wpisz uzasadnienie nawiązujące do wyników badań MRI, badania fizykalnego oraz wymagań stanowiska pracy..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs text-slate-800 focus:ring-gov-600 focus:border-gov-600 font-sans leading-relaxed"></textarea>
+                                </div>
+
+                                <button type="submit" class="w-full py-2.5 bg-gov-600 hover:bg-gov-700 text-white rounded-lg text-xs font-bold transition shadow-sm flex items-center justify-center space-x-2">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                    <span>Zweryfikuj Projekt Decyzji</span>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Feedback Box (Hidden initially) -->
+                        <div id="synthetic-feedback" class="hidden mt-4 p-4 rounded-xl border text-xs">
+                            <!-- Output loaded dynamically -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div id="view-certificates" class="hidden space-y-6 animate-fade-in">
+                <!-- Header -->
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">Rejestr Certyfikatów i Egzaminy</h2>
+                        <p class="text-xs text-slate-500">Ewidencja uprawnień okresowych, walidacja kodów oraz testy odnawiające</p>
+                    </div>
+                    <button onclick="startRenewalExam()" class="px-4 py-2.5 bg-gov-600 hover:bg-gov-700 text-white rounded-lg text-xs font-bold shadow-sm transition flex items-center space-x-2">
+                        <i class="fa-solid fa-file-signature"></i>
+                        <span>Rozpocznij Egzamin Odnawiający</span>
+                    </button>
+                </div>
+
+                <!-- Certificates Table -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                        <h3 class="font-bold text-sm text-slate-800">Moje Aktywne i Historyczne Zaświadczenia</h3>
+                        <span class="text-xs text-slate-400">Aktualizowane automatycznie</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-slate-600">
+                            <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider border-b border-slate-200 font-mono">
+                                <tr>
+                                    <th class="px-5 py-3">Nazwa Certyfikatu</th>
+                                    <th class="px-5 py-3">Kod Rejestrowy</th>
+                                    <th class="px-5 py-3">Wydano</th>
+                                    <th class="px-5 py-3">Ważność Do</th>
+                                    <th class="px-5 py-3">Status</th>
+                                    <th class="px-5 py-3 text-right">Dokument</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100" id="certificates-table-body">
+                                <!-- Generated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Certification Rules & Credit System -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-sm text-slate-800 mb-3">Wymagania Okresowej Certyfikacji (CPD)</h3>
+                        <ul class="space-y-2.5 text-xs text-slate-600 leading-relaxed">
+                            <li class="flex items-start space-x-2">
+                                <i class="fa-solid fa-check text-emerald-600 mt-0.5"></i>
+                                <span>Minimum <strong>60 punktów edukacyjnych</strong> uzyskanych w cyklu 24-miesięcznym.</span>
+                            </li>
+                            <li class="flex items-start space-x-2">
+                                <i class="fa-solid fa-check text-emerald-600 mt-0.5"></i>
+                                <span>Obligatoryjne zaliczenie minimum <strong>3 warsztatów na danych syntetycznych</strong> rocznie.</span>
+                            </li>
+                            <li class="flex items-start space-x-2">
+                                <i class="fa-solid fa-check text-emerald-600 mt-0.5"></i>
+                                <span>Pozytywny wynik testu weryfikacyjnego (minimum 80% poprawnych odpowiedzi).</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-gov-50/70 p-5 rounded-xl border border-gov-100 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-bold text-sm text-gov-800 mb-2">Cyfrowe Zaświadczenie Kompetencji</h3>
+                            <p class="text-xs text-gov-700 leading-relaxed">Pobierz zbiorcze zestawienie certyfikatów i punktów ustawicznego rozwoju zawodowego w formacie z możliwością weryfikacji kodem QR.</p>
+                        </div>
+                        <button onclick="downloadCertMock('SUMMARY-CPD-2026')" class="mt-4 w-full py-2.5 bg-gov-600 hover:bg-gov-700 text-white rounded-lg text-xs font-bold transition shadow-sm flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-file-pdf"></i>
+                            <span>Pobierz zbiorczy certyfikat (PDF)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-webinars" class="hidden space-y-6 animate-fade-in">
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">Webinary & Konsultacje Eksperckie</h2>
+                        <p class="text-xs text-slate-500">Transmisje na żywo, analizy uchwał Sądu Najwyższego oraz rezerwacja konsultacji indywidualnych</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="switchWebinarTab('upcoming')" id="btn-web-upcoming" class="px-3.5 py-2 bg-gov-600 text-white text-xs font-bold rounded-lg shadow-sm">Nadchodzące Sesje</button>
+                        <button onclick="switchWebinarTab('consult')" id="btn-web-consult" class="px-3.5 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-bold rounded-lg transition">Konsultacje 1-na-1</button>
+                    </div>
+                </div>
+
+                <!-- Dynamic Container -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="webinars-grid-container">
+                    <!-- Dynamic rendering -->
+                </div>
+            </div>
+
+            <div id="view-publisher" class="hidden space-y-6 animate-fade-in">
+                <!-- Header Alert -->
+                <div class="bg-gov-700 text-white p-5 rounded-xl shadow-md flex items-center justify-between">
+                    <div>
+                        <div class="text-xs text-gov-accent font-mono uppercase tracking-wider mb-1">PANEL ZARZĄDZANIA TREŚCIĄ DLA WYDAWCÓW</div>
+                        <h2 class="text-xl font-bold">Publikacja Modułów i Danych Syntetycznych</h2>
+                    </div>
+                    <span class="bg-gov-800 text-slate-200 text-xs px-3 py-1 rounded-md border border-slate-600/60 font-mono">Narzędzia CMS</span>
+                </div>
+
+                <!-- Content Upload Form -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-5">
+                    <h3 class="font-bold text-sm text-slate-800 border-b border-slate-100 pb-2">Opublikuj Nowy Kazus Szkoleniowy (Dane Syntetyczne)</h3>
+                    
+                    <form onsubmit="handlePublisherSubmit(event)" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Tytuł Kazusu Szkoleniowego:</label>
+                                <input type="text" id="pub-title" required placeholder="np. Sprawa #SYN-104: Złożone schorzenia kardiologiczne" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-gov-600">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Kategoria / Dziedzina:</label>
+                                <select id="pub-category" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-gov-600">
+                                    <option>Orzecznictwo Rentowe</option>
+                                    <option>Świadczenia Wspierające</option>
+                                    <option>Postępowanie Administracyjne (KPA)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Syntetyczna Dokumentacja Medyczna & Wywiad (Treść dla użytkowników):</label>
+                            <textarea id="pub-body" rows="4" required placeholder="Wklej anonimizowany, sztucznie utworzony profil pacjenta i opisy badań..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-gov-600"></textarea>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                            <span class="text-[11px] text-emerald-700 font-medium flex items-center">
+                                <i class="fa-solid fa-shield-halved mr-1.5"></i> Automatyczny skan RODO Guard: Brak rzeczywistych PESEL/Danych
+                            </span>
+                            <button type="submit" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition shadow-sm flex items-center space-x-2">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                                <span>Opublikuj Kazus w Katalogu</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Published Items List -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                    <h3 class="font-bold text-sm text-slate-800 mb-4">Opublikowane Materiały i Moduły Kursowe</h3>
+                    <div class="space-y-3" id="publisher-items-list">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modal: Course Player -->
+    <div id="course-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-3xl w-full p-6 space-y-4 relative border border-slate-200 max-h-[90vh] flex flex-col">
+            <button onclick="closeCourseModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <div id="course-modal-header" class="border-b border-slate-100 pb-3">
+                <!-- Dynamic Header -->
+            </div>
+            <div id="course-modal-body" class="flex-1 overflow-y-auto custom-scrollbar space-y-4 text-xs text-slate-600 pr-2">
+                <!-- Dynamic Content -->
+            </div>
+            <div class="pt-3 border-t border-slate-100 flex justify-between items-center">
+                <span class="text-xs text-slate-400" id="course-modal-cpd-badge">Punkty CPD: +15</span>
+                <button onclick="completeCourseStep()" class="px-5 py-2 bg-gov-600 hover:bg-gov-700 text-white rounded-lg text-xs font-bold transition">
+                    Zatwierdź Ukończenie Modułu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Renewal Exam -->
+    <div id="exam-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-6 space-y-5 relative border border-slate-200">
+            <button onclick="closeExamModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <div class="border-b border-slate-100 pb-3">
+                <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded uppercase font-mono">EGZAMIN WERYFIKACYJNY</span>
+                <h3 class="text-lg font-bold text-slate-800 mt-1">Sprawdzian Kompetencji Orzeczniczych KPA</h3>
+                <p class="text-xs text-slate-500">Próg zaliczenia: 100% • Zaliczenie odnawia certyfikat na 24 miesiące</p>
+            </div>
+
+            <form id="exam-form" onsubmit="submitExam(event)" class="space-y-4 max-h-[380px] overflow-y-auto custom-scrollbar pr-2">
+                <div class="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
+                    <p class="text-xs font-bold text-slate-800">1. Czy opinia orzecznicza sporządzona w sprawach rentowych wymaga przedstawienia uzasadnienia medycznego oraz prawnego?</p>
+                    <label class="flex items-center space-x-2 text-xs cursor-pointer">
+                        <input type="radio" name="q1" value="a" required class="text-gov-600">
+                        <span>Tak, uzasadnienie spójne z zebranym materiałem jest obligatoryjne.</span>
+                    </label>
+                    <label class="flex items-center space-x-2 text-xs cursor-pointer">
+                        <input type="radio" name="q1" value="b" class="text-gov-600">
+                        <span>Nie, wystarczy sama konkluzja końcowa.</span>
+                    </label>
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
+                    <p class="text-xs font-bold text-slate-800">2. Jaki jest podstawowy termin na wniesienie odwołania w trybie kodeksu postępowania administracyjnego (KPA)?</p>
+                    <label class="flex items-center space-x-2 text-xs cursor-pointer">
+                        <input type="radio" name="q2" value="a" required class="text-gov-600">
+                        <span>14 dni od dnia doręczenia decyzji.</span>
+                    </label>
+                    <label class="flex items-center space-x-2 text-xs cursor-pointer">
+                        <input type="radio" name="q2" value="b" class="text-gov-600">
+                        <span>30 dni od dnia doręczenia.</span>
+                    </label>
+                </div>
+
+                <div class="flex justify-between items-center pt-2">
+                    <span class="text-xs text-slate-400">Pytania: 2 z 2</span>
+                    <button type="submit" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition shadow-sm">
+                        Wyślij Odpowiedzi i Odnów Certyfikat
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast-notification" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl text-xs flex items-center space-x-3 transition-all transform translate-y-20 opacity-0 z-50 border border-slate-700">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-base" id="toast-icon"></i>
+        <span id="toast-message">Akcja wykonana pomyślnie.</span>
+    </div>
+
+    <script>
+        let currentRole = 'orzecznik';
+        let userCPD = 48;
+        let activeCertsCount = 3;
+        let solvedCasesCount = 18;
+
+        const coursesData = [
+            {
+                id: 1,
+                title: "Metodyka oceny uszczerbku na zdrowiu wg aktualnych wytycznych",
+                category: "Orzecznictwo Lekarskie",
+                group: "orzecznik",
+                status: "active",
+                progress: 75,
+                cpd: 15,
+                desc: "Kompleksowe szkolenie z praktycznej interpretacji wytycznych medycznych i tabel uszczerbkowych z przykładami syntetycznymi.",
+                image: "https://placehold.co/600x400/103053/FFFFFF?text=Ocena+Uszczerbku"
+            },
+            {
+                id: 2,
+                title: "Uzasadnianie decyzji w sprawach świadczeń wspierających",
+                category: "KPA & Administracja",
+                group: "admin",
+                status: "active",
+                progress: 30,
+                cpd: 10,
+                desc: "Zasady sporządzania wyczerpujących i spójnych prawnie uzasadnień decyzji odmownych i przyznających.",
+                image: "https://placehold.co/600x400/0b213b/FFFFFF?text=Uzasadnianie+Decyzji"
+            },
+            {
+                id: 3,
+                title: "Ochrona danych osobowych i obsługa danych syntetycznych",
+                category: "Bezpieczeństwo & RODO",
+                group: "admin",
+                status: "available",
+                progress: 0,
+                cpd: 5,
+                desc: "Jak bezpiecznie pracować z dokumentacją szkoleniową i testową bez ryzyka naruszenia przepisów RODO.",
+                image: "https://placehold.co/600x400/334155/FFFFFF?text=RODO+i+Syntetyki"
+            },
+            {
+                id: 4,
+                title: "Standardy orzekania w sprawach niepełnosprawności narządu wzroku",
+                category: "Orzecznictwo Lekarskie",
+                group: "orzecznik",
+                status: "completed",
+                progress: 100,
+                cpd: 20,
+                desc: "Specjalistyczny kurs z zakresu oceny niepełnosprawności wzrokowej na podstawie wyników badań funkcjonalnych.",
+                image: "https://placehold.co/600x400/0f172a/FFFFFF?text=Orzecznictwo+Okulistyczne"
+            }
+        ];
+
+        let certificatesData = [
+            {
+                name: "Standardy Orzekania w Sprawach Rentowych (PO-2024-88)",
+                code: "CERT-ORZ-8821",
+                issued: "2024-10-15",
+                expires: "2026-10-15",
+                status: "expiring" // valid, expiring, expired
+            },
+            {
+                name: "Certyfikat Biegłości Postępowania Administracyjnego (KPA)",
+                code: "CERT-KPA-1029",
+                issued: "2025-02-01",
+                expires: "2027-02-01",
+                status: "valid"
+            },
+            {
+                name: "Specjalista Analizy Danych Syntetycznych",
+                code: "CERT-SYN-0041",
+                issued: "2025-05-10",
+                expires: "2027-05-10",
+                status: "valid"
+            }
+        ];
+
+        const syntheticCases = {
+            'case-101': {
+                id: "AKTA SPRAWY SYN-101",
+                medContent: `
+                    <div class="bg-slate-100 p-3 rounded-lg border border-slate-200 mb-3">
+                        <strong class="text-gov-700">Syntetyczny Profil Badany:</strong> Pacjent K-45 / Wiek: 52 lata / Zawód: Księgowy
+                    </div>
+                    <p class="mb-2"><strong>Wywiad Medyczny:</strong> Wieloletni wywiad zmian zwyrodnieniowo-dyskopatycznych kręgosłupa L-S z zespołem korzeniowym lewostronnym. Zgłasza nasilenie dolegliwości bólowych przy długotrwałej pozycji siedzącej.</p>
+                    <p class="mb-2"><strong>Wyniki Badań (Syntetyczne):</strong> MRI kręgosłupa L-S (data: 2026-01-12): Przepuklina krążka L4/L5 z uciskiem na worek oponowy i lewy korzeń L5. Test Laseque'a dodatni po stronie lewej przy kącie 45°.</p>
+                    <p><strong>Dotychczasowe leczenie:</strong> Rehabilitacja zachowawcza 2x w roku, brak opinii kwalifikującej do pilnego leczenia operacyjnego.</p>
+                `,
+                interviewContent: `
+                    <p class="mb-2"><strong>Treść Wniosku:</strong> Wniosek o ustalenie prawa do renty z tytułu niezdolności do pracy.</p>
+                    <p><strong>Oświadczenie o charakterze pracy:</strong> Praca biurowa, w wymiarze 8h dziennie, wymagająca długotrwałej pozycji siedzącej i komputera.</p>
+                `,
+                historyContent: `
+                    <p class="mb-2"><strong>Staż pracy:</strong> 28 lat okresów składkowych i nieskładkowych.</p>
+                    <p><strong>Okresy zasiłkowe:</strong> Wykorzystany pełny okres zasiłkowy (182 dni). Świadczenie rehabilitacyjne pobierane przez 3 miesiące.</p>
+                `,
+                rulesContent: `
+                    <div class="bg-gov-50 p-3 rounded border border-gov-200 text-gov-800">
+                        <h4 class="font-bold mb-1">Standard Orzeczniczy PO-2026-LS:</h4>
+                        <p class="mb-1">• Zmiany dyskopatyczne bez objawów ubytkowych nie stanowią przesłanki całkowitej niezdolności do pracy.</p>
+                        <p>• Wskazana ocena możliwości przekwalifikowania zawodowego lub adaptacji stanowiska biurowego.</p>
+                    </div>
+                `
+            },
+            'case-102': {
+                id: "AKTA SPRAWY SYN-102",
+                medContent: `
+                    <div class="bg-slate-100 p-3 rounded-lg border border-slate-200 mb-3">
+                        <strong class="text-gov-700">Syntetyczny Profil Badany:</strong> Wnioskodawca M-72 / Wiek: 68 lat
+                    </div>
+                    <p class="mb-2"><strong>Ocena Funkcjonalna:</strong> Ocena potrzeby wsparcia w skali punktowej. Znaczne trudności w samodzielnym poruszaniu się poza domem, ograniczenie sprawności manualnej.</p>
+                `,
+                interviewContent: `<p>Wniosek o ustalenie poziomu potrzeby wsparcia w sprawach świadczeń wspierających.</p>`,
+                historyContent: `<p>Stan emerytalny. Brak aktywności zawodowej.</p>`,
+                rulesContent: `<p>Kryteria punktowe opierają się na formularzu oceny zdolności do samodzielnego wykonywania czynności codziennych.</p>`
+            },
+            'case-103': {
+                id: "AKTA SPRAWY SYN-103",
+                medContent: `
+                    <div class="bg-slate-100 p-3 rounded-lg border border-slate-200 mb-3">
+                        <strong class="text-gov-700">Syntetyczny Profil Badany:</strong> Analiza akt w trybie nadzoru administracyjnego.
+                    </div>
+                    <p>Uchybienie formalne polegające na braku odniesienia się w uzasadnieniu decyzji I instancji do zastrzeżeń wniesionych przez stronę.</p>
+                `,
+                interviewContent: `<p>Odwołanie od decyzji orzeczniczej.</p>`,
+                historyContent: `<p>Bieg postępowania odwoławczego KPA.</p>`,
+                rulesContent: `<p>Art. 107 § 3 KPA – Uzasadnienie faktyczne decyzji powinno w szczególności zawierać wskazanie faktów, które organ uznał za udowodnione.</p>`
+            }
+        };
+
+        const webinarsData = [
+            {
+                title: "Zmiany w procedurze odwoławczej KPA 2026",
+                speaker: "prof. dr hab. Ewa Nowak",
+                date: "02 Października 2026, 10:00 - 11:30",
+                type: "Webinar Live",
+                desc: "Praktyczne omówienie nowych przepisów w procedurze odwoławczej i wpływu na treść uzasadnień."
+            },
+            {
+                title: "Interpretacja orzeczeń Sądu Najwyższego",
+                speaker: "sędzia dr Marek Wiśniewski",
+                date: "05 Października 2026, 14:00 - 15:00",
+                type: "Konsultacje Eksperckie",
+                desc: "Sesja Q&A dedykowana kadrom orzeczniczym – analiza trudnych stanów faktycznych."
+            }
+        ];
+
+        window.onload = function() {
+            renderCourses();
+            renderCertificates();
+            renderWebinars();
+            renderDashboardWebinars();
+            renderPublisherList();
+            loadSyntheticCase('case-101');
+            initCompetencyChart();
+        };
+
+        // Switch View Logic
+        function switchView(viewName) {
+            const views = ['dashboard', 'courses', 'synthetic', 'certificates', 'webinars', 'publisher'];
+            
+            views.forEach(v => {
+                const el = document.getElementById(`view-${v}`);
+                const nav = document.getElementById(`nav-${v}`);
+                if (el) el.classList.add('hidden');
+                if (nav) {
+                    nav.classList.remove('bg-slate-100', 'text-gov-600');
+                    nav.classList.add('text-slate-600');
+                }
+            });
+
+            const activeView = document.getElementById(`view-${viewName}`);
+            const activeNav = document.getElementById(`nav-${viewName}`);
+            
+            if (activeView) activeView.classList.remove('hidden');
+            if (activeNav) {
+                activeNav.classList.add('bg-slate-100', 'text-gov-600');
+                activeNav.classList.remove('text-slate-600');
+            }
+
+            // Mobile sidebar handle
+            if (window.innerWidth < 768) {
+                document.getElementById('app-sidebar').classList.add('hidden');
+            }
+        }
+
+        // Toggle Sidebar on mobile
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('app-sidebar');
+            sidebar.classList.toggle('hidden');
+        }
+
+        // Change User Role Simulator
+        function setUserRole(role) {
+            currentRole = role;
+            
+            ['orzecznik', 'admin', 'publisher'].forEach(r => {
+                const btn = document.getElementById(`role-btn-${r}`);
+                if (r === role) {
+                    btn.className = "px-2.5 py-1 rounded-md transition font-medium bg-white text-gov-700 shadow-sm";
+                } else {
+                    btn.className = "px-2.5 py-1 rounded-md text-slate-300 hover:text-white transition font-medium";
+                }
+            });
+
+            const nameEl = document.getElementById('user-display-name');
+            const titleEl = document.getElementById('user-display-title');
+            
+            if (role === 'orzecznik') {
+                nameEl.innerText = "dr n. med. Jan Kowalski";
+                titleEl.innerText = "Główny Lekarz Orzecznik";
+            } else if (role === 'admin') {
+                nameEl.innerText = "mgr Anna Nowak";
+                titleEl.innerText = "Starszy Inspektor Administracyjny";
+            } else {
+                nameEl.innerText = "Piotr Zieliński";
+                titleEl.innerText = "Wydawca Treści Szkoleniowych";
+                switchView('publisher');
+            }
+
+            showNotification(`Przełączono na widok roli: ${role.toUpperCase()}`);
+            filterCourses();
+        }
+
+        function renderCourses() {
+            const grid = document.getElementById('courses-grid');
+            grid.innerHTML = '';
+
+            coursesData.forEach(course => {
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition";
+                card.innerHTML = `
+                    <div>
+                        <img src="${course.image}" alt="${course.title}" class="w-full h-36 object-cover">
+                        <div class="p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded ${course.group === 'orzecznik' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'} uppercase">
+                                    ${course.group === 'orzecznik' ? 'Kadra Orzecznicza' : 'Administracja'}
+                                </span>
+                                <span class="text-xs font-bold text-amber-600"><i class="fa-solid fa-award mr-1"></i>${course.cpd} Pkt CPD</span>
+                            </div>
+                            <h3 class="font-bold text-sm text-slate-800 leading-snug">${course.title}</h3>
+                            <p class="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed">${course.desc}</p>
+                        </div>
+                    </div>
+                    <div class="px-4 pb-4 pt-2 border-t border-slate-100 flex items-center justify-between">
+                        <span class="text-xs font-medium text-slate-400">
+                            ${course.status === 'completed' ? 'Ukończony' : (course.status === 'active' ? 'W trakcie (' + course.progress + '%)' : 'Dostępny')}
+                        </span>
+                        <button onclick="openCourseModal(${course.id})" class="px-3.5 py-1.5 bg-gov-600 hover:bg-gov-700 text-white text-xs font-semibold rounded-lg transition shadow-sm">
+                            ${course.status === 'active' ? 'Kontynuuj' : 'Otwórz Kurs'}
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            document.getElementById('nav-courses-count').innerText = coursesData.length;
+        }
+
+        function filterCourses() {
+            const groupFilter = document.getElementById('course-filter-group').value;
+            const statusFilter = document.getElementById('course-filter-status').value;
+            const searchQuery = (document.getElementById('course-search-input').value || '').toLowerCase();
+            const grid = document.getElementById('courses-grid');
+
+            const filtered = coursesData.filter(c => {
+                const matchGroup = (groupFilter === 'all' || c.group === groupFilter);
+                const matchStatus = (statusFilter === 'all' || c.status === statusFilter);
+                const matchSearch = c.title.toLowerCase().includes(searchQuery) || c.desc.toLowerCase().includes(searchQuery);
+                return matchGroup && matchStatus && matchSearch;
+            });
+
+            grid.innerHTML = '';
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-3 text-center py-10 text-slate-400 text-xs">Brak kursów spełniających wybrane kryteria wyszukiwania.</div>`;
+                return;
+            }
+
+            filtered.forEach(course => {
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition";
+                card.innerHTML = `
+                    <div>
+                        <img src="${course.image}" alt="${course.title}" class="w-full h-36 object-cover">
+                        <div class="p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded ${course.group === 'orzecznik' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'} uppercase">
+                                    ${course.group === 'orzecznik' ? 'Kadra Orzecznicza' : 'Administracja'}
+                                </span>
+                                <span class="text-xs font-bold text-amber-600"><i class="fa-solid fa-award mr-1"></i>${course.cpd} Pkt CPD</span>
+                            </div>
+                            <h3 class="font-bold text-sm text-slate-800 leading-snug">${course.title}</h3>
+                            <p class="text-xs text-slate-500 mt-2 line-clamp-2">${course.desc}</p>
+                        </div>
+                    </div>
+                    <div class="px-4 pb-4 pt-2 border-t border-slate-100 flex items-center justify-between">
+                        <span class="text-xs font-medium text-slate-400">
+                            ${course.status === 'completed' ? 'Ukończony' : (course.status === 'active' ? 'W trakcie' : 'Dostępny')}
+                        </span>
+                        <button onclick="openCourseModal(${course.id})" class="px-3.5 py-1.5 bg-gov-600 hover:bg-gov-700 text-white text-xs font-semibold rounded-lg transition">
+                            Otwórz Kurs
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function renderCertificates() {
+            const tbody = document.getElementById('certificates-table-body');
+            tbody.innerHTML = '';
+
+            certificatesData.forEach(cert => {
+                let statusBadge = '';
+                if (cert.status === 'valid') {
+                    statusBadge = `<span class="bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded font-bold font-mono">WAŻNY</span>`;
+                } else if (cert.status === 'expiring') {
+                    statusBadge = `<span class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded font-bold font-mono animate-pulse">WYGASA WKRÓTCE</span>`;
+                } else {
+                    statusBadge = `<span class="bg-red-100 text-red-800 text-[10px] px-2 py-0.5 rounded font-bold font-mono">WYGASŁ</span>`;
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50/80 transition";
+                tr.innerHTML = `
+                    <td class="px-5 py-3 font-semibold text-slate-800">${cert.name}</td>
+                    <td class="px-5 py-3 font-mono text-slate-500">${cert.code}</td>
+                    <td class="px-5 py-3">${cert.issued}</td>
+                    <td class="px-5 py-3 font-semibold">${cert.expires}</td>
+                    <td class="px-5 py-3">${statusBadge}</td>
+                    <td class="px-5 py-3 text-right">
+                        <button onclick="downloadCertMock('${cert.code}')" class="text-gov-600 hover:underline font-semibold text-xs">
+                            <i class="fa-solid fa-download mr-1"></i> PDF
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function loadSyntheticCase(caseKey) {
+            const caseObj = syntheticCases[caseKey];
+            if (!caseObj) return;
+
+            document.getElementById('case-file-id').innerText = caseObj.id;
+            document.getElementById('case-tab-content').innerHTML = caseObj.medContent;
+            
+            const feedbackBox = document.getElementById('synthetic-feedback');
+            feedbackBox.classList.add('hidden');
+        }
+
+        function switchCaseTab(tabType) {
+            const caseKey = document.getElementById('synthetic-case-select').value;
+            const caseObj = syntheticCases[caseKey];
+            const contentEl = document.getElementById('case-tab-content');
+
+            ['med', 'interview', 'history', 'rules'].forEach(t => {
+                const btn = document.getElementById(`tab-case-${t}`);
+                if (btn) {
+                    if (t === tabType) {
+                        btn.className = "py-2.5 tab-active whitespace-nowrap";
+                    } else {
+                        btn.className = "py-2.5 text-slate-500 hover:text-slate-800 whitespace-nowrap";
+                    }
+                }
+            });
+
+            if (tabType === 'med') contentEl.innerHTML = caseObj.medContent;
+            if (tabType === 'interview') contentEl.innerHTML = caseObj.interviewContent;
+            if (tabType === 'history') contentEl.innerHTML = caseObj.historyContent;
+            if (tabType === 'rules') contentEl.innerHTML = caseObj.rulesContent;
+        }
+
+        function submitSyntheticDecision(e) {
+            e.preventDefault();
+            const reasoning = document.getElementById('synthetic-input-reasoning').value || '';
+            const feedbackBox = document.getElementById('synthetic-feedback');
+
+            feedbackBox.classList.remove('hidden');
+
+            const words = reasoning.trim().split(/\s+/).length;
+
+            if (words < 12) {
+                feedbackBox.className = "mt-4 p-4 rounded-xl border border-red-200 bg-red-50 text-red-800 text-xs";
+                feedbackBox.innerHTML = `
+                    <div class="font-bold mb-1"><i class="fa-solid fa-circle-xmark mr-1"></i> Zbyt Krótkie Uzasadnienie</div>
+                    Uzasadnienie powinno zawierać odniesienie do kryteriów orzeczniczych i dowodów medycznych.
+                `;
+            } else {
+                feedbackBox.className = "mt-4 p-4 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-900 text-xs space-y-2";
+                feedbackBox.innerHTML = `
+                    <div class="font-bold text-sm"><i class="fa-solid fa-circle-check mr-1 text-emerald-600"></i> Ocena Projektu Pozytywna</div>
+                    <p>Sformułowany wywód merytoryczny spełnia standardy spójności z wytycznymi orzeczniczymi.</p>
+                    <div class="bg-white/90 p-2 rounded border border-emerald-200 font-mono text-[11px] text-slate-700">
+                        <strong>Wynik ćwiczenia:</strong> Zaliczone (+5 Pkt CPD) • <strong>Trafność:</strong> 96%
+                    </div>
+                `;
+                
+                // Update stats
+                userCPD += 5;
+                solvedCasesCount += 1;
+                updateStatsUI();
+                showNotification("Zaliczono ćwiczenie na danych syntetycznych (+5 CPD)");
+            }
+        }
+
+        function updateStatsUI() {
+            document.getElementById('cpd-points-val').innerText = `${userCPD} / 60`;
+            document.getElementById('cpd-progress-bar').style.width = `${Math.min(100, (userCPD / 60) * 100)}%`;
+            document.getElementById('completed-cases-count').innerText = `${solvedCasesCount} spraw`;
+            document.getElementById('active-certs-count').innerText = activeCertsCount;
+        }
+
+        let competencyChartInstance = null;
+
+        function initCompetencyChart() {
+            const canvas = document.getElementById('competencyChart');
+            if (!canvas) return;
+
+            // Defensive guard if Chart library load is delayed
+            if (typeof Chart === 'undefined') {
+                setTimeout(initCompetencyChart, 250);
+                return;
+            }
+
+            if (competencyChartInstance) {
+                competencyChartInstance.destroy();
+            }
+
+            const ctx = canvas.getContext('2d');
+            competencyChartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: [
+                        'Procedura KPA',
+                        'Orzecznictwo Rentowe',
+                        'Ocena Funkcjonalna',
+                        'Analiza Syntetyczna',
+                        'Uzasadnianie Decyzji',
+                        'Etyka i RODO'
+                    ],
+                    datasets: [{
+                        label: 'Poziom Kompetencji (%)',
+                        data: [90, 85, 72, 95, 80, 88],
+                        fill: true,
+                        backgroundColor: 'rgba(16, 48, 83, 0.15)',
+                        borderColor: '#103053',
+                        pointBackgroundColor: '#c89332',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#103053'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: '#e2e8f0' },
+                            grid: { color: '#f1f5f9' },
+                            suggestedMin: 0,
+                            suggestedMax: 100,
+                            ticks: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        function renderWebinars() {
+            const container = document.getElementById('webinars-grid-container');
+            container.innerHTML = '';
+
+            webinarsData.forEach(web => {
+                const item = document.createElement('div');
+                item.className = "bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between";
+                item.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="bg-blue-100 text-blue-800 text-[10px] px-2.5 py-0.5 rounded font-bold">${web.type}</span>
+                            <span class="text-xs text-slate-400 font-mono"><i class="fa-regular fa-clock mr-1"></i>${web.date}</span>
+                        </div>
+                        <h3 class="font-bold text-slate-800 text-base mb-1">${web.title}</h3>
+                        <p class="text-xs text-slate-500 mb-3">Prowadzący: <strong>${web.speaker}</strong></p>
+                        <p class="text-xs text-slate-600 leading-relaxed">${web.desc}</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 flex justify-end">
+                        <button onclick="toggleEnrollWebinar(this)" class="px-4 py-2 bg-gov-600 hover:bg-gov-700 text-white text-xs font-semibold rounded-lg transition shadow-sm">
+                            Zapisz się na Sesję
+                        </button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function renderDashboardWebinars() {
+            const container = document.getElementById('dashboard-webinars-container');
+            container.innerHTML = '';
+
+            webinarsData.forEach(web => {
+                const el = document.createElement('div');
+                el.className = "flex items-center p-3 border border-slate-200/80 rounded-xl hover:bg-slate-50 transition";
+                el.innerHTML = `
+                    <div class="bg-gov-50 text-gov-700 rounded-lg p-3 text-center min-w-[60px] mr-3 border border-gov-100">
+                        <span class="block text-[10px] uppercase font-bold text-slate-400">PAŹ</span>
+                        <span class="text-lg font-extrabold font-mono leading-none">02</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <span class="bg-blue-100 text-blue-800 text-[10px] px-2 py-0.5 rounded font-bold">${web.type}</span>
+                        <h4 class="text-xs font-bold text-slate-800 truncate mt-1">${web.title}</h4>
+                        <p class="text-[11px] text-slate-500 truncate">${web.speaker}</p>
+                    </div>
+                    <button onclick="toggleEnrollWebinar(this)" class="px-3 py-1.5 bg-gov-600 text-white hover:bg-gov-700 text-xs rounded-lg font-medium ml-2">Zapisz się</button>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        function toggleEnrollWebinar(btn) {
+            if (btn.innerText.includes("Zapisz się") || btn.innerText.includes("Zapisz")) {
+                btn.innerText = "Zapisano ✓";
+                btn.className = "px-3.5 py-1.5 bg-emerald-600 text-white text-xs rounded-lg font-bold ml-2 transition";
+                showNotification("Zostałeś zapisany na spotkanie. Link udostępnimy przed sesją.");
+            } else {
+                btn.innerText = "Zapisz się";
+                btn.className = "px-3.5 py-1.5 bg-gov-600 text-white hover:bg-gov-700 text-xs rounded-lg font-medium ml-2 transition";
+            }
+        }
+
+        function switchWebinarTab(type) {
+            const upcomingBtn = document.getElementById('btn-web-upcoming');
+            const consultBtn = document.getElementById('btn-web-consult');
+            const container = document.getElementById('webinars-grid-container');
+
+            if (type === 'upcoming') {
+                upcomingBtn.className = "px-3.5 py-2 bg-gov-600 text-white text-xs font-bold rounded-lg shadow-sm";
+                consultBtn.className = "px-3.5 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-bold rounded-lg transition";
+                renderWebinars();
+            } else {
+                consultBtn.className = "px-3.5 py-2 bg-gov-600 text-white text-xs font-bold rounded-lg shadow-sm";
+                upcomingBtn.className = "px-3.5 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-bold rounded-lg transition";
+                container.innerHTML = `
+                    <div class="col-span-2 bg-white p-6 rounded-xl border border-slate-200 text-slate-700 space-y-4">
+                        <h3 class="font-bold text-sm text-slate-800">Rezerwacja Konsultacji Indywidualnej z Ekspertem Orzecznictwa</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold mb-1">Ekspert Consultor:</label>
+                                <select class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs">
+                                    <option>prof. dr hab. Ewa Nowak (Procedury Odwoławcze KPA)</option>
+                                    <option>dr n. med. Marek Wiśniewski (Kardiologia Orzecznicza)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1">Termin Spotkania:</label>
+                                <input type="date" value="2026-10-10" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs">
+                            </div>
+                        </div>
+                        <button onclick="showNotification('Zgłoszenie konsultacji zostało przesłane.'); switchWebinarTab('upcoming');" class="px-4 py-2 bg-gov-600 text-white text-xs font-bold rounded-lg">
+                            Potwierdź Rezerwację
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function startRenewalExam() {
+            document.getElementById('exam-modal').classList.remove('hidden');
+        }
+
+        function closeExamModal() {
+            document.getElementById('exam-modal').classList.add('hidden');
+        }
+
+        function submitExam(e) {
+            e.preventDefault();
+            closeExamModal();
+            
+            // Renew cert
+            certificatesData[0].status = 'valid';
+            certificatesData[0].expires = '2028-10-15';
+            renderCertificates();
+
+            // Hide banner
+            const banner = document.getElementById('cert-alert-banner');
+            if (banner) banner.style.display = 'none';
+
+            const warningBadge = document.getElementById('cert-warning-badge');
+            if (warningBadge) warningBadge.style.display = 'none';
+
+            showNotification("Egzamin zaliczony! Certyfikat został odnowiony na kolejne 24 miesiące.");
+        }
+
+        function openCourseModal(courseId) {
+            const course = coursesData.find(c => c.id === courseId);
+            if (!course) return;
+
+            const modal = document.getElementById('course-modal');
+            const header = document.getElementById('course-modal-header');
+            const body = document.getElementById('course-modal-body');
+
+            header.innerHTML = `
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-gov-50 text-gov-700 uppercase font-mono">${course.category}</span>
+                <h3 class="text-base font-bold text-slate-800 mt-1">${course.title}</h3>
+            `;
+
+            body.innerHTML = `
+                <div class="aspect-video bg-slate-900 rounded-lg flex items-center justify-center text-white relative overflow-hidden group cursor-pointer" onclick="showNotification('Odtwarzanie wykładu wideo...')">
+                    <img src="${course.image}" class="w-full h-full object-cover opacity-40">
+                    <div class="absolute w-12 h-12 bg-gov-accent/90 rounded-full flex items-center justify-center text-gov-800 shadow-lg text-lg">
+                        <i class="fa-solid fa-play ml-1"></i>
+                    </div>
+                    <span class="absolute bottom-2 right-2 bg-slate-900/80 px-2 py-1 rounded text-[10px] font-mono">24:15</span>
+                </div>
+                <div class="space-y-2 leading-relaxed">
+                    <h4 class="font-bold text-slate-800 text-xs">Opis i Materiały Szkoleniowe:</h4>
+                    <p>${course.desc}</p>
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                        <strong class="text-slate-700">Moduł Zaliczeniowy:</strong> Po obejrzeniu wykładu przejdź do testu wiedzy lub warsztatu na danych syntetycznych.
+                    </div>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeCourseModal() {
+            document.getElementById('course-modal').classList.add('hidden');
+        }
+
+        function completeCourseStep() {
+            closeCourseModal();
+            userCPD += 10;
+            updateStatsUI();
+            showNotification("Ukończono moduł kursowy! Přzyznano +10 Punktów CPD.");
+        }
+
+        function renderPublisherList() {
+            const list = document.getElementById('publisher-items-list');
+            list.innerHTML = `
+                <div class="flex items-center justify-between p-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition">
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-800">Moduł M-2026-01: Wytyczne do oceny stopnia niepełnosprawności</h4>
+                        <p class="text-[11px] text-slate-400">Ostatnia edycja: 12.09.2026 • Status: Widoczny dla użytkowników</p>
+                    </div>
+                    <div class="flex space-x-3 text-xs">
+                        <button onclick="showNotification('Edytor treści wywołany.')" class="text-gov-600 hover:underline">Edytuj</button>
+                        <button onclick="showNotification('Archiwizacja modułu.')" class="text-red-600 hover:underline">Zarchiwizuj</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function handlePublisherSubmit(e) {
+            e.preventDefault();
+            const title = document.getElementById('pub-title').value;
+            
+            showNotification(`Opublikowano nowy kazus: "${title}"`);
+            e.target.reset();
+        }
+
+        function downloadCertMock(code) {
+            showNotification(`Generowanie zaświadczenia cyfrowego PDF [${code}]...`);
+        }
+
+        function showNotification(msg) {
+            const toast = document.getElementById('toast-notification');
+            const msgEl = document.getElementById('toast-message');
+            msgEl.innerText = msg;
+            
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3200);
+        }
+    </script>
+</body>
+</html>
